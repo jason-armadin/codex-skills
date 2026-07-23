@@ -25,7 +25,9 @@ rules.
 5. Compare the designs using the evaluation criteria below.
 6. Recommend one design and explain the decisive tradeoffs. Record what remains
    intentionally combined, what is hidden, and what would justify a later split.
-7. Turn the selection into concrete APIs, ownership boundaries, workflow
+7. Define a helper budget for the recommended design. List the new private
+   functions or methods it needs and why each earns a separate interface.
+8. Turn the selection into concrete APIs, ownership boundaries, workflow
    ordering, error behavior, tests, and implementation or PR steps.
 
 For a small change, perform this loop briefly. Do not manufacture architecture
@@ -48,6 +50,36 @@ behavior.
 - Extract a module only when it owns meaningful knowledge, can change relatively
   independently, and offers an interface substantially simpler than its
   implementation.
+
+## Set a helper budget
+
+For a nontrivial implementation plan, state a helper budget for the recommended
+design before listing implementation steps. Scope it to new private functions
+and methods introduced by the change; public operations and existing helpers
+are outside the budget.
+
+- Give a numeric ceiling. Zero is valid. Treat the ceiling as a reviewable
+  prediction, not a quota or a hard architectural limit.
+- List every expected helper by name or responsibility, its owner and callers,
+  the knowledge or complexity it hides, and why keeping that logic inline would
+  be worse.
+- Justify helpers through information hiding, invariant ownership, a distinct
+  algorithm or mechanism, or removal of duplicated knowledge. Reuse alone is
+  neither required nor sufficient.
+- Reject helpers that only rename an expression, forward arguments, split
+  chronological steps, satisfy a size metric, or create new parameter and state
+  plumbing.
+- Exceed the budget only when implementation reveals a distinct responsibility
+  that the plan missed. Revise the budget and record the new justification
+  before adding the helper.
+- At handoff, reconcile planned and actual helpers. Merge or inline any helper
+  that no longer earns its interface.
+
+Present the budget compactly:
+
+| Helper | Owner and callers | Knowledge hidden | Why not inline |
+| --- | --- | --- | --- |
+| Name or responsibility | Owning module and direct callers | Invariant, policy, algorithm, or mechanism | Concrete cognitive-load benefit |
 
 ## Hide information
 
@@ -164,8 +196,9 @@ For a nontrivial design task, provide:
 4. A compact mapping of each proposed module to the knowledge it owns.
 5. Workflow ordering, invariants, and error semantics.
 6. Caller and maintainer cognitive-load tradeoffs.
-7. The implementation and review sequence.
-8. Open questions that materially change the design.
+7. The helper budget for the recommended design.
+8. The implementation and review sequence.
+9. Open questions that materially change the design.
 
 Use a table or small flow only when it makes ownership, alternatives, or
 sequence materially easier to compare. Avoid using design terminology as a
